@@ -1,9 +1,9 @@
 import torch
-from src.model import SimpleModel
+from model import SimpleModel
 
 # 加载模型
 model = SimpleModel()
-model.load_state_dict(torch.load("../models/model.pth"))
+model.load_state_dict(torch.load("models/model.pth"))
 model.eval()
 
 def predict(input_data):
@@ -16,3 +16,4 @@ def predict(input_data):
     with torch.no_grad():
         output = model(input_tensor)
     return output.item()
+print(predict([8,2]))
