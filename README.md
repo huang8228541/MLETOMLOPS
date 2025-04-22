@@ -1,11 +1,11 @@
-# 项目流程说明
+# MLOps 需将模型封装为 HTTP 服务，使其可在 Docker 环境中运行，保障服务 24x7 稳定运行，并支持未来模型升级
 
-## 1. 项目结构优化
-首先优化项目结构，让代码更易于管理和扩展。在当前目录下创建如下结构：
+## 1. 代码结构优化
+在当前目录下创建如下结构：
 
 ```
 mle2mlops/
-├── data/                # 存放数据集
+├── data/                # 存放数据集（为空）
 ├── models/              # 存放模型权重文件
 │ └── model.pth
 ├── src/
@@ -14,10 +14,12 @@ mle2mlops/
 ├── Dockerfile           # Docker 配置文件
 ├── requirements.txt     # 依赖文件
 └── MLE_handover.ipynb   # 原始 Notebook
+├── BuildDocker.sh     # 构建和运行 Docker 镜像
+└── test.sh   # 测试文件
 ```
 
 ## 2. 拆分代码
-将当前代码拆分成不同的文件，提高代码的可维护性。
+将代码拆分成不同的文件。
 
 ### src/model.py
 ```python
@@ -56,7 +58,7 @@ def predict(input_data):
 ```
 
 ## 3. 创建依赖文件
-在项目根目录创建 `requirements.txt`，列出项目所需的依赖库。
+在项目根目录创建 `requirements.txt`。
 
 ### requirements.txt
 ```
@@ -141,7 +143,7 @@ CMD ["python", "src/app.py"]
 ```
 
 ## 6. 构建和运行 Docker 镜像
-在项目根目录创建BuildDocker.sh 构建和运行 Docker 容器：
+在根目录创建BuildDocker.sh 构建和运行 Docker 容器：
 
 ```
 #!/bin/bash
@@ -179,7 +181,7 @@ echo "Docker 容器已启动，服务运行在 http://localhost:5000"
 ```
 
 ## 7. 测试服务
-创建test.sh 使用 `curl` 测试服务：
+创建test.sh 使用 `curl` 测试：
 
 ```
 curl -X POST http://localhost:5000/predict \
