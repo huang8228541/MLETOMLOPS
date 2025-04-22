@@ -60,7 +60,37 @@ def predict(input_data):
 
 ### requirements.txt
 ```
-torch
+blinker==1.9.0
+click==8.1.8
+filelock==3.18.0
+Flask==3.1.0
+fsspec==2025.3.2
+importlib_metadata==8.6.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+mpmath==1.3.0
+networkx==3.2.1
+nvidia-cublas-cu12==12.4.5.8
+nvidia-cuda-cupti-cu12==12.4.127
+nvidia-cuda-nvrtc-cu12==12.4.127
+nvidia-cuda-runtime-cu12==12.4.127
+nvidia-cudnn-cu12==9.1.0.70
+nvidia-cufft-cu12==11.2.1.3
+nvidia-curand-cu12==10.3.5.147
+nvidia-cusolver-cu12==11.6.1.9
+nvidia-cusparse-cu12==12.3.1.170
+nvidia-cusparselt-cu12==0.6.2
+nvidia-nccl-cu12==2.21.5
+nvidia-nvjitlink-cu12==12.4.127
+nvidia-nvtx-cu12==12.4.127
+sympy==1.13.1
+torch==2.6.0
+triton==3.2.0
+typing_extensions==4.13.2
+Werkzeug==3.1.3
+zipp==3.21.0
+
 ```
 
 ## 4. 创建 HTTP 服务
@@ -91,41 +121,71 @@ if __name__ == '__main__':
 # 使用 Python 基础镜像
 FROM python:3.9-slim
 
-#设置工作目录
+# 设置工作目录
 WORKDIR /app
 
-#复制依赖文件
-COPY requirements.txt.
+# 复制依赖文件
+COPY requirements.txt .
 
-#安装依赖
+# 安装依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
-#复制项目文件
-COPY..
+# 复制项目文件
+COPY . .
 
-#暴露端口
+# 暴露端口
 EXPOSE 5000
 
-#启动应用
+# 启动应用
 CMD ["python", "src/app.py"]
 ```
 
 ## 6. 构建和运行 Docker 镜像
-在项目根目录下执行以下命令构建和运行 Docker 容器：
+在项目根目录创建BuildDocker.sh 构建和运行 Docker 容器：
 
-```bash
+```
+#!/bin/bash
+
+# 设置错误时退出
+set -e
+
+echo "开始构建 Docker 镜像..."
+
 # 构建 Docker 镜像
-docker build -t mle2mlops.
+docker build -t mle2mlops:latest .
+
+echo "Docker 镜像构建完成"
+
+echo "启动 Docker 容器..."
+
+# 检查并清理已有容器
+if docker ps -a --filter "name=mle2mlops" | grep -q mle2mlops; then
+    echo "发现已存在的 mle2mlops 容器，正在停止并移除..."
+    docker stop mle2mlops >/dev/null 2>&1
+    docker rm mle2mlops >/dev/null 2>&1
+fi
 
 # 运行 Docker 容器
-docker run -p 5000:5000 mle2mlops
+# -d: 后台运行
+# --name: 指定容器名称
+# --restart: 自动重启策略
+docker run -d \
+  --name mle2mlops \
+  --restart unless-stopped \
+  -p 5000:5000 \
+  mle2mlops:latest
+
+echo "Docker 容器已启动，服务运行在 http://localhost:5000"
 ```
 
 ## 7. 测试服务
-使用 `curl` 或者 `Postman` 测试服务：
+创建test.sh 使用 `curl` 测试服务：
 
-```bash
-curl -X POST http://localhost:5000/predict -H "Content-Type: application/json" -d '{"input": [4.0, 6.0]}'
+```
+curl -X POST http://localhost:5000/predict \
+     -H "Content-Type: application/json" \
+     -d '{"input": [4.0, 6.0]}'
+
 ```
 
 ## 8. 持续集成和持续部署（CI/CD）
@@ -152,4 +212,3 @@ jobs:
       run: echo "Deploying to production..."
 ```
 
-通过以上步骤，你就可以将机器学习模型从开发环境部署到生产环境，并实现基本的 MLOps 流程。 
