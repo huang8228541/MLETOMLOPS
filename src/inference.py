@@ -16,4 +16,3 @@ def predict(input_data):
     with torch.no_grad():
         output = model(input_tensor)
     return output.item()
-print(predict([8,2]))

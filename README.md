@@ -4,18 +4,26 @@
 在当前目录下创建如下结构：
 
 ```
-mle2mlops/
-├── data/                # 存放数据集（为空）
-├── models/              # 存放模型权重文件
-│ └── model.pth
+mletomlops/
+
+.github/
+└── workflows/
+    └── main.yml  
+
+项目文件：
+├── BuildDocker.sh
+├── Dockerfile
+├── MLE_handover.ipynb
+├── README.md
+├── models/
+│   └── model.pth
+├── requirements.txt
 ├── src/
-│ ├── model.py         # 模型定义
-│ └── inference.py     # 推理代码
-├── Dockerfile           # Docker 配置文件
-├── requirements.txt     # 依赖文件
-└── MLE_handover.ipynb   # 原始 Notebook
-├── BuildDocker.sh     # 构建和运行 Docker 镜像
-└── test.sh   # 测试文件
+│   ├── app.py
+│   ├── inference.py
+│   └── model.py
+└── test.sh
+
 ```
 
 ## 2. 拆分代码
@@ -96,7 +104,6 @@ zipp==3.21.0
 ```
 
 ## 4. 创建 HTTP 服务
-使用 Flask 框架将模型封装成 HTTP 服务。
 
 ### src/app.py
 ```python
@@ -145,7 +152,7 @@ CMD ["python", "src/app.py"]
 ## 6. 构建和运行 Docker 镜像
 在根目录创建BuildDocker.sh 构建和运行 Docker 容器：
 
-```
+```sh
 #!/bin/bash
 
 # 设置错误时退出
@@ -183,7 +190,7 @@ echo "Docker 容器已启动，服务运行在 http://localhost:5000"
 ## 7. 测试服务
 创建test.sh 使用 `curl` 测试：
 
-```
+```sh
 curl -X POST http://localhost:5000/predict \
      -H "Content-Type: application/json" \
      -d '{"input": [4.0, 6.0]}'
@@ -191,26 +198,71 @@ curl -X POST http://localhost:5000/predict \
 ```
 
 ## 8. 持续集成和持续部署（CI/CD）
-可以使用 GitHub Actions、GitLab CI/CD 等工具实现自动化的代码测试、构建和部署。以下是一个简单的 GitHub Actions 示例：
 
 ###.github/workflows/main.yml
-```yaml
+```yml
 name: CI/CD
 
 on:
   push:
     branches: [ main ]
+  # 也可以手动触发工作流
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Build Docker image
-      run: docker build -t mle2mlops.
-    - name: Run tests (示例，可根据实际情况添加测试代码)
-      run: echo "Running tests..."
-    - name: Deploy to production (示例，可根据实际情况修改部署方式)
-      run: echo "Deploying to production..."
+      # 检出代码到运行环境
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 设置 Python 环境
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      # 安装项目依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 运行单元测试，假设测试代码在 tests 目录下
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests -p 'test_*.py'
+        continue-on-error: false
+
+      # 构建 Docker 镜像
+      - name: Build Docker image
+        run: docker build -t mle2mlops .
+
+      # 登录 Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 标记并推送 Docker 镜像到 Docker Hub
+      - name: Tag and push Docker image
+        run: |
+          docker tag mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
+
+      # 模拟部署到生产环境，这里使用 SSH 连接到服务器并拉取新镜像
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v0.1.14
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
+            docker stop mle2mlops || true
+            docker rm mle2mlops || true
+            docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 ```
 
