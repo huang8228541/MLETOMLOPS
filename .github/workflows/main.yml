@@ -43,8 +43,19 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 
       # 模拟部署到生产环境，这里使用 SSH 连接到服务器并拉取新镜像
+      # - name: Deploy to production
+      #   uses: appleboy/ssh-action@v0.1.14
+      #   with:
+      #     host: ${{ secrets.PROD_HOST }}
+      #     username: ${{ secrets.PROD_USERNAME }}
+      #     key: ${{ secrets.PROD_SSH_KEY }}
+      #     script: |
+      #       docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
+      #       docker stop mle2mlops || true
+      #       docker rm mle2mlops || true
+      #       docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
       - name: Deploy to production
-        uses: appleboy/ssh-action@v0.1.14
+        uses: appleboy/ssh-action@v2
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
@@ -52,8 +63,8 @@ jobs:
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
             docker stop mle2mlops || true
-            docker rm mle2mlops || true
             docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
+
 
 
             
