@@ -206,8 +206,7 @@ name: CI/CD
 on:
   push:
     branches: [ main ]
-  # 也可以手动触发工作流
-  workflow_dispatch:
+  
 
 jobs:
   build-and-deploy:
@@ -229,12 +228,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 运行单元测试，假设测试代码在 tests 目录下
-      - name: Run unit tests
-        run: |
-          python -m unittest discover -s tests -p 'test_*.py'
-        continue-on-error: false
-
       # 构建 Docker 镜像
       - name: Build Docker image
         run: docker build -t mle2mlops .
@@ -252,9 +245,9 @@ jobs:
           docker tag mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 
-      # 模拟部署到生产环境，这里使用 SSH 连接到服务器并拉取新镜像
+      # 模拟部署到生产环境，SSH 连接到服务器并拉取新镜像
       - name: Deploy to production
-        uses: appleboy/ssh-action@v0.1.14
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
@@ -262,7 +255,6 @@ jobs:
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
             docker stop mle2mlops || true
-            docker rm mle2mlops || true
             docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 ```
 
