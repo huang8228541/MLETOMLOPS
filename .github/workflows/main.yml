@@ -66,5 +66,4 @@ jobs:
             docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 
 
-
-            
+    
