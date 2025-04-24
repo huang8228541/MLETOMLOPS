@@ -55,7 +55,7 @@ jobs:
       #       docker rm mle2mlops || true
       #       docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
       - name: Deploy to production
-        uses: appleboy/ssh-action@v2
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
