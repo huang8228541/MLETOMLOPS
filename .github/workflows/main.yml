@@ -48,7 +48,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          password: ${{ secrets.PROD_PASSWORD }}  # 使用密码登录
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
             docker stop mle2mlops || true
