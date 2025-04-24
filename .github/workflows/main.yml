@@ -44,7 +44,7 @@ jobs:
 
       # 模拟部署到生产环境，这里使用 SSH 连接到服务器并拉取新镜像
       - name: Deploy to production
-        uses: appleboy/ssh-action@v0.1.14
+        uses: appleboy/ssh-action@v0.5.3
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
