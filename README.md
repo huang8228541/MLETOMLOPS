@@ -258,3 +258,10 @@ jobs:
             docker run -d -p 5000:5000 --name mle2mlops ${{ secrets.DOCKERHUB_USERNAME }}/mle2mlops:latest
 ```
 
+## 1. 配置截图与测试截图
+
+![alt text](image.png)
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
